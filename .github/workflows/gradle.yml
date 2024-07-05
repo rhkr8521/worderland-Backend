@@ -47,7 +47,7 @@ jobs:
 
       - name: stop running container
         run: |
-          CONTAINER_ID=$(sudo docker ps -q --filter "name=iccas_backend")
+          CONTAINER_ID=$(echo "${{ secrets.DOCKERHUB_PASSWORD }}" | sudo -S docker ps -q --filter "name=iccas_backend")
           if [ ! -z "$CONTAINER_ID" ]; then
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | sudo -S docker stop $CONTAINER_ID
           fi
