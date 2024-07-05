@@ -1,8 +1,6 @@
 name: rhkr8521 - CICD
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
@@ -26,7 +24,7 @@ jobs:
           arguments: clean bootJar
 
       - name: docker image build
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/iccas_question .
+        run: sudo docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/iccas_question .
 
       - name: docker login
         uses: docker/login-action@v2
@@ -35,7 +33,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: docker Hub push
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/iccas_question
+        run: sudo docker push ${{ secrets.DOCKERHUB_USERNAME }}/iccas_question
 
   run-docker-image-on-mapping-server:
     needs: build-docker-image
@@ -47,7 +45,7 @@ jobs:
 
       - name: stop running container
         run: |
-          CONTAINER_ID=$(docker ps -q --filter "name=iccas_backend")
+          CONTAINER_ID=$(sudo docker ps -q --filter "name=iccas_backend")
           if [ ! -z "$CONTAINER_ID" ]; then
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | sudo -S docker stop $CONTAINER_ID
           fi
