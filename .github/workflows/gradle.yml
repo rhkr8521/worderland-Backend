@@ -26,7 +26,7 @@ jobs:
           arguments: clean bootJar
 
       - name: docker image build
-        run: sudo docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/iccas_question .
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/iccas_backend .
 
       - name: docker login
         uses: docker/login-action@v2
@@ -35,19 +35,19 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: docker Hub push
-        run: sudo docker push ${{ secrets.DOCKERHUB_USERNAME }}/iccas_question
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/iccas_backend
 
-  run-docker-image-on-mapping-server:
+  run-docker-image-on-iccas-server:
     needs: build-docker-image
     runs-on: self-hosted
 
     steps:
       - name: docker pull
-        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | sudo -S docker pull ${{ secrets.DOCKERHUB_USERNAME }}/iccas_question
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | sudo -S docker pull ${{ secrets.DOCKERHUB_USERNAME }}/iccas_backend
 
       - name: stop running container
         run: |
-          CONTAINER_ID=$(sudo docker ps -q --filter "name=iccas_backend")
+          CONTAINER_ID=$(docker ps -q --filter "iccas_backend")
           if [ ! -z "$CONTAINER_ID" ]; then
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | sudo -S docker stop $CONTAINER_ID
           fi
@@ -55,7 +55,8 @@ jobs:
       - name: docker run new container
         run: |
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | sudo -S docker run --name iccas_backend --rm -d \
-          -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/iccas_question
+          -p 8080:8080 \
+          ${{ secrets.DOCKERHUB_USERNAME }}/iccas_backend
 
       - name: delete old docker images
         run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | sudo -S docker system prune -f
