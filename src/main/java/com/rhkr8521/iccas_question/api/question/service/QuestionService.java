@@ -6,9 +6,10 @@ import com.rhkr8521.iccas_question.api.question.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,16 +18,16 @@ public class QuestionService {
     private final QuestionRepository questionRepository;
     private final Random random = new Random();
 
-    public Optional<QuestionDTO> getRandomQuestionByThemeAndStage(String theme, Long stage) {
+    public List<QuestionDTO> getRandomQuestionsByThemeAndStage(String theme, Long stage) {
         List<Question> questions = questionRepository.findByThemeAndStage(theme, stage);
         if (questions.isEmpty()) {
-            return Optional.empty();
+            return Collections.emptyList();
         }
-        Question randomQuestion = questions.get(random.nextInt(questions.size()));
-        QuestionDTO questionDTO = new QuestionDTO(
-                randomQuestion.getQuestionId(),
-                randomQuestion.getContent()
-        );
-        return Optional.of(questionDTO);
+
+        Collections.shuffle(questions);
+        return questions.stream()
+                .limit(10)
+                .map(question -> new QuestionDTO(question.getQuestionId(), question.getContent()))
+                .collect(Collectors.toList());
     }
 }
