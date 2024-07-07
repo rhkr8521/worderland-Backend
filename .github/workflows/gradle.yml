@@ -3,8 +3,6 @@ name: rhkr8521 - CICD
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 permissions:
   contents: read
