@@ -16,7 +16,6 @@ public enum SuccessStatus {
     SEND_QUESTION_ANSWER_YES(HttpStatus.OK, "정답 입니다"),
     SEND_QUESTION_ANSWER_NO(HttpStatus.OK, "오답 입니다"),
 
-
     ;
 
     private final HttpStatus httpStatus;
