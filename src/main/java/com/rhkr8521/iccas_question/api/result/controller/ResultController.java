@@ -1,0 +1,32 @@
+package com.rhkr8521.iccas_question.api.result.controller;
+
+import com.rhkr8521.iccas_question.api.result.dto.ResultResponseDTO;
+import com.rhkr8521.iccas_question.api.result.service.ResultService;
+import com.rhkr8521.iccas_question.common.response.ApiResponse;
+import com.rhkr8521.iccas_question.common.response.SuccessStatus;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequiredArgsConstructor
+public class ResultController {
+
+    private final ResultService resultService;
+
+    @GetMapping("/api/result/{userId}")
+    public ResponseEntity<?> getResultsByTheme(@PathVariable String userId, @RequestParam String theme) {
+        List<ResultResponseDTO> resultResponseDtos = resultService.getResultsByTheme(userId, theme);
+        return ResponseEntity.ok(ApiResponse.builder()
+                .status(SuccessStatus.SEND_RESULT.getStatusCode())
+                .success(true)
+                .message(SuccessStatus.SEND_RESULT.getMessage())
+                .data(resultResponseDtos)
+                .build());
+    }
+}
