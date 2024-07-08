@@ -3,6 +3,8 @@ package com.rhkr8521.iccas_question.api.result.service;
 import com.rhkr8521.iccas_question.api.result.domain.Result;
 import com.rhkr8521.iccas_question.api.result.dto.ResultResponseDTO;
 import com.rhkr8521.iccas_question.api.result.repository.ResultRepository;
+import com.rhkr8521.iccas_question.common.exception.InitialResultFail;
+import com.rhkr8521.iccas_question.common.response.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +39,7 @@ public class ResultService {
         }
 
         Result result = resultRepository.findByUserIdAndThemeAndStage(userId, theme, stage)
-                .orElseThrow(() -> new IllegalStateException("Result should be initialized but was not found"));
+                .orElseThrow(() -> new InitialResultFail(ErrorStatus.Initial_Result_Fail.getMessage()));
 
         result.incrementTotalQuestions();
         if (isCorrect) {

@@ -6,6 +6,7 @@ import com.rhkr8521.iccas_question.api.question.domain.Question;
 import com.rhkr8521.iccas_question.api.question.repository.QuestionRepository;
 import com.rhkr8521.iccas_question.api.result.service.ResultService;
 import com.rhkr8521.iccas_question.common.exception.NotFoundException;
+import com.rhkr8521.iccas_question.common.response.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +22,7 @@ public class AnswerService {
     @Transactional
     public boolean checkAnswer(Long questionId, String userId, String userAnswer) {
         Question question = questionRepository.findById(questionId)
-                .orElseThrow(() -> new NotFoundException("문제 ID를 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_QUESTION.getMessage()));
 
         boolean isCorrect = question.getAnswer().equalsIgnoreCase(userAnswer);
 
