@@ -24,6 +24,7 @@ public class Result extends BaseTimeEntity {
     private int totalCorrectAnswers;
 
     private int recentCorrectAnswers;
+    private int highCorrectAnswers;
 
     public void incrementTotalQuestions() {
         this.totalQuestions++;
@@ -35,5 +36,11 @@ public class Result extends BaseTimeEntity {
 
     public void updateRecentCorrectAnswers(int correctAnswers) {
         this.recentCorrectAnswers = correctAnswers;
+    }
+
+    public void updateHighCorrectAnswers(int correctAnswers) {
+        if (correctAnswers > this.highCorrectAnswers) {
+            this.highCorrectAnswers = correctAnswers;
+        }
     }
 }
