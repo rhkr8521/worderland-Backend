@@ -1,102 +1,137 @@
 package com.rhkr8521.iccas_question.api.result.service;
 
+import com.rhkr8521.iccas_question.api.result.domain.GameSet;
 import com.rhkr8521.iccas_question.api.result.domain.Result;
 import com.rhkr8521.iccas_question.api.result.dto.ResultResponseDTO;
+import com.rhkr8521.iccas_question.api.result.repository.GameSetRepository;
 import com.rhkr8521.iccas_question.api.result.repository.ResultRepository;
-import com.rhkr8521.iccas_question.common.exception.InitialResultFail;
-import com.rhkr8521.iccas_question.common.response.ErrorStatus;
+import com.rhkr8521.iccas_question.common.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ResultService {
 
+    private final GameSetRepository gameSetRepository;
     private final ResultRepository resultRepository;
 
-    @Transactional(readOnly = true)
-    public List<ResultResponseDTO> getResultsByTheme(String userId, String theme) {
-        return resultRepository.findByUserIdAndTheme(userId, theme).stream()
-                .map(result -> {
-                    ResultResponseDTO.ResultResponseDTOBuilder builder = ResultResponseDTO.builder()
-                            .userId(result.getUserId())
-                            .theme(result.getTheme())
-                            .stage(result.getStage())
-                            .totalQuestions(result.getTotalQuestions())
-                            .totalCorrectAnswers(result.getTotalCorrectAnswers())
-                            .recentCorrectAnswers(result.getRecentCorrectAnswers());
+    @Transactional
+    public void updateGameSet(String userId, String theme, Long stage, boolean isCorrect) {
+        GameSet currentGameSet = gameSetRepository.findByUserIdAndTheme(userId, theme).stream()
+                .filter(gs -> gs.getFirstStageTotalCount() < 5 || gs.getSecondStageTotalCount() < 5 || gs.getThirdStageTotalCount() < 1)
+                .findFirst()
+                .orElseGet(() -> {
+                    GameSet newGameSet = GameSet.builder()
+                            .userId(userId)
+                            .theme(theme)
+                            .firstStageRecord(0)
+                            .firstStageTotalCount(0)
+                            .secondStageRecord(0)
+                            .secondStageTotalCount(0)
+                            .thirdStageRecord(0)
+                            .thirdStageTotalCount(0)
+                            .build();
+                    return gameSetRepository.save(newGameSet);
+                });
 
-                    if (result.getStage() != 3L) {
-                        builder.highCorrectAnswers(result.getHighCorrectAnswers());
-                    }
+        if (stage == 1L) {
+            currentGameSet = currentGameSet.updateFirstStageRecord(isCorrect ? 1 : 0);
+        } else if (stage == 2L) {
+            currentGameSet = currentGameSet.updateSecondStageRecord(isCorrect ? 1 : 0);
+        } else if (stage == 3L) {
+            currentGameSet = currentGameSet.updateThirdStageRecord(isCorrect ? 1 : 0);
+        }
 
-                    return builder.build();
-                })
-                .collect(Collectors.toList());
+        gameSetRepository.save(currentGameSet);
+
+        if (currentGameSet.getFirstStageTotalCount() == 5 && currentGameSet.getSecondStageTotalCount() == 5 && currentGameSet.getThirdStageTotalCount() == 1) {
+            updateResultsWithBestGameSet(userId, theme);
+            GameSet newGameSet = GameSet.builder()
+                    .userId(userId)
+                    .theme(theme)
+                    .firstStageRecord(0)
+                    .firstStageTotalCount(0)
+                    .secondStageRecord(0)
+                    .secondStageTotalCount(0)
+                    .thirdStageRecord(0)
+                    .thirdStageTotalCount(0)
+                    .build();
+            gameSetRepository.save(newGameSet);
+        }
     }
 
-    @Transactional
-    public void updateResult(String userId, String theme, Long stage, boolean isCorrect) {
-        initializeResultIfNeeded(userId);
+    private void updateResultsWithBestGameSet(String userId, String theme) {
+        List<GameSet> gameSets = gameSetRepository.findByUserIdAndTheme(userId, theme);
 
-        Optional<Result> resultOptional = resultRepository.findByUserIdAndThemeAndStage(userId, theme, stage);
-        if (resultOptional.isEmpty()) {
-            throw new InitialResultFail(ErrorStatus.Initial_Result_Fail.getMessage());
+        if (gameSets.isEmpty()) {
+            throw new NotFoundException("해당 사용자는 게임 플레이 기록이 없습니다.");
         }
 
-        Result result = resultOptional.get();
+        GameSet bestGameSet = gameSets.stream()
+                .max(Comparator.comparingDouble(GameSet::getTotalAccuracy))
+                .orElseThrow(() -> new NotFoundException("해당 사용자는 게임 플레이 기록이 없습니다."));
 
-        result.incrementTotalQuestions();
-        if (isCorrect) {
-            result.incrementTotalCorrectAnswers();
-        }
+        updateOrSaveResult(userId, theme, 1L, bestGameSet.getFirstStageRecord());
+        updateOrSaveResult(userId, theme, 2L, bestGameSet.getSecondStageRecord());
+        updateOrSaveResult(userId, theme, 3L, bestGameSet.getThirdStageRecord());
+    }
 
-        int recentCorrectAnswers = result.getRecentCorrectAnswers();
+    private void updateOrSaveResult(String userId, String theme, Long stage, int correctAnswers) {
+        Result result = resultRepository.findByUserIdAndThemeAndStage(userId, theme, stage)
+                .orElse(Result.builder()
+                        .userId(userId)
+                        .theme(theme)
+                        .stage(stage)
+                        .correctAnswers(correctAnswers)
+                        .build());
 
-        if (stage == 1L || stage == 2L) {
-            // 10문제 단위로 맞춘 갯수를 갱신
-            if (result.getTotalQuestions() % 10 == 0 && isCorrect) {
-                recentCorrectAnswers = 10;
-            } else if (result.getTotalQuestions() % 10 == 1) {
-                recentCorrectAnswers = isCorrect ? 1 : 0;
-            } else if (isCorrect) {
-                recentCorrectAnswers++;
-            }
-
-            result.updateRecentCorrectAnswers(recentCorrectAnswers);
-            result.updateHighCorrectAnswers(recentCorrectAnswers);
-        } else if (stage == 3L) {
-            // 1문제 단위로 맞춘 갯수를 갱신
-            recentCorrectAnswers = isCorrect ? 1 : 0;
-            result.updateRecentCorrectAnswers(recentCorrectAnswers);
-        }
+        result = Result.builder()
+                .id(result.getId())
+                .userId(result.getUserId())
+                .theme(result.getTheme())
+                .stage(result.getStage())
+                .correctAnswers(correctAnswers)
+                .build();
 
         resultRepository.save(result);
     }
 
-    @Transactional
-    public void initializeResultIfNeeded(String userId) {
-        List<String> themes = List.of("carousel", "ferris_wheel", "roller_coaster");
-        for (String theme : themes) {
-            for (Long stage = 1L; stage <= 3L; stage++) {
-                if (resultRepository.findByUserIdAndThemeAndStage(userId, theme, stage).isEmpty()) {
-                    Result result = Result.builder()
-                            .userId(userId)
-                            .theme(theme)
-                            .stage(stage)
-                            .totalQuestions(0)
-                            .totalCorrectAnswers(0)
-                            .recentCorrectAnswers(0)
-                            .highCorrectAnswers(0)
-                            .build();
-                    resultRepository.save(result);
-                }
-            }
+    @Transactional(readOnly = true)
+    public List<ResultResponseDTO> getBestResults(String userId, String theme) {
+        List<GameSet> gameSets = gameSetRepository.findByUserIdAndTheme(userId, theme);
+
+        if (gameSets.isEmpty()) {
+            throw new NotFoundException("해당 사용자는 게임 플레이 기록이 없습니다.");
         }
+
+        GameSet bestGameSet = gameSets.stream()
+                .max(Comparator.comparingDouble(GameSet::getTotalAccuracy))
+                .orElseThrow(() -> new NotFoundException("해당 사용자는 게임 플레이 기록이 없습니다."));
+
+        return List.of(
+                ResultResponseDTO.builder()
+                        .userId(bestGameSet.getUserId())
+                        .theme(bestGameSet.getTheme())
+                        .stage(1L)
+                        .correctAnswers(bestGameSet.getFirstStageRecord())
+                        .build(),
+                ResultResponseDTO.builder()
+                        .userId(bestGameSet.getUserId())
+                        .theme(bestGameSet.getTheme())
+                        .stage(2L)
+                        .correctAnswers(bestGameSet.getSecondStageRecord())
+                        .build(),
+                ResultResponseDTO.builder()
+                        .userId(bestGameSet.getUserId())
+                        .theme(bestGameSet.getTheme())
+                        .stage(3L)
+                        .correctAnswers(bestGameSet.getThirdStageRecord())
+                        .build()
+        );
     }
 }
