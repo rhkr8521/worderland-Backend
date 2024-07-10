@@ -20,12 +20,17 @@ public class QuestionController {
     private final QuestionService questionService;
 
     @GetMapping("/api/question/{theme}")
-    public ApiResponse<List<QuestionDTO>> getQuestionsByThemeAndStage(@PathVariable String theme, @RequestParam Long stage) {
-        List<QuestionDTO> questions = questionService.getRandomQuestionsByThemeAndStage(theme, stage);
-        if (!questions.isEmpty()) {
-            return ApiResponse.success(SuccessStatus.SEND_QUESTION_SUCCESS, questions);
+    public ApiResponse<?> getQuestionsByThemeAndStage(@PathVariable String theme, @RequestParam Long stage) {
+        if (stage == 3L) {
+            QuestionDTO questionDTO = questionService.getChatGPTQuestion(theme);
+            return ApiResponse.success(SuccessStatus.SEND_QUESTION_SUCCESS, questionDTO);
         } else {
-            return ApiResponse.fail(ErrorStatus.NOT_FOUND_QUESTION.getStatusCode(), ErrorStatus.NOT_FOUND_QUESTION.getMessage());
+            List<QuestionDTO> questions = questionService.getRandomQuestionsByThemeAndStage(theme, stage);
+            if (!questions.isEmpty()) {
+                return ApiResponse.success(SuccessStatus.SEND_QUESTION_SUCCESS, questions);
+            } else {
+                return ApiResponse.fail(ErrorStatus.NOT_FOUND_QUESTION.getStatusCode(), ErrorStatus.NOT_FOUND_QUESTION.getMessage());
+            }
         }
     }
 }
