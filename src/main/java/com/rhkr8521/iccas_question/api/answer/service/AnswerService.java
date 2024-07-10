@@ -26,7 +26,7 @@ public class AnswerService {
 
         boolean isCorrect = question.getAnswer().equalsIgnoreCase(userAnswer);
 
-        resultService.updateResult(userId, question.getTheme(), question.getStage(), isCorrect);
+        resultService.updateGameSet(userId, question.getTheme(), question.getStage(), isCorrect);
 
         Answer answer = Answer.builder()
                 .question(question)

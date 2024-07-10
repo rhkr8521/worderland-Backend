@@ -20,13 +20,13 @@ public class ResultController {
     private final ResultService resultService;
 
     @GetMapping("/api/result/{userId}")
-    public ResponseEntity<?> getResultsByTheme(@PathVariable String userId, @RequestParam String theme) {
-        List<ResultResponseDTO> resultResponseDtos = resultService.getResultsByTheme(userId, theme);
+    public ResponseEntity<?> getBestResultsByTheme(@PathVariable String userId, @RequestParam String theme) {
+        List<ResultResponseDTO> bestResults = resultService.getBestResults(userId, theme);
         return ResponseEntity.ok(ApiResponse.builder()
                 .status(SuccessStatus.SEND_RESULT.getStatusCode())
                 .success(true)
                 .message(SuccessStatus.SEND_RESULT.getMessage())
-                .data(resultResponseDtos)
+                .data(bestResults)
                 .build());
     }
 }

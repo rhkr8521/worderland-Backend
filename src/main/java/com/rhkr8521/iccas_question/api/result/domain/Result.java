@@ -16,31 +16,7 @@ public class Result extends BaseTimeEntity {
     private Long id;
 
     private String userId;
-
     private String theme;
     private Long stage;
-
-    private int totalQuestions;
-    private int totalCorrectAnswers;
-
-    private int recentCorrectAnswers;
-    private int highCorrectAnswers;
-
-    public void incrementTotalQuestions() {
-        this.totalQuestions++;
-    }
-
-    public void incrementTotalCorrectAnswers() {
-        this.totalCorrectAnswers++;
-    }
-
-    public void updateRecentCorrectAnswers(int correctAnswers) {
-        this.recentCorrectAnswers = correctAnswers;
-    }
-
-    public void updateHighCorrectAnswers(int correctAnswers) {
-        if (correctAnswers > this.highCorrectAnswers) {
-            this.highCorrectAnswers = correctAnswers;
-        }
-    }
+    private int correctAnswers;
 }
