@@ -19,13 +19,17 @@ public enum ErrorStatus {
      * 404 NOT_FOUND
      */
     NOT_FOUND_QUESTION(HttpStatus.NOT_FOUND, "해당 문제를 찾을 수 없습니다."),
+    NOT_FOUND_THEME(HttpStatus.NOT_FOUND, "해당 테마를 찾을 수 없습니다."),
 
     /**
      * 500 SERVER_ERROR
      */
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "예상치 못한 서버 에러가 발생했습니다."),
     BAD_GATEWAY_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "일시적인 에러가 발생하였습니다.\n잠시 후 다시 시도해주세요!"),
-    Initial_Result_Fail(HttpStatus.INTERNAL_SERVER_ERROR, "결과 초기값 설정에 에러가 발생했습니다.");
+    Initial_Result_Fail(HttpStatus.INTERNAL_SERVER_ERROR, "결과 초기값 설정에 에러가 발생했습니다."),
+    CHATGPT_RESPONSE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "chatGPT API 통신에 실패했습니다."),
+    CHATGPT_INCORRECT_RESPONSE(HttpStatus.INTERNAL_SERVER_ERROR, "chatGPT API 응답이 비정상 입니다, 응답내용 : "),
+    ;
 
     private final HttpStatus httpStatus;
     private final String message;
