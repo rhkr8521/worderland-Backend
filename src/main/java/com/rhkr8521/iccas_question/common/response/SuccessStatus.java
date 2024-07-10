@@ -16,6 +16,13 @@ public enum SuccessStatus {
     SEND_QUESTION_ANSWER_YES(HttpStatus.OK, "정답 입니다"),
     SEND_QUESTION_ANSWER_NO(HttpStatus.OK, "오답 입니다"),
     SEND_RESULT(HttpStatus.OK, "결과 발송 성공"),
+    EXIST_USER(HttpStatus.OK, "기존 사용자 입니다"),
+
+    /**
+     * 201
+     */
+    FIRST_USER(HttpStatus.CREATED, "처음 사용자 입니다"),
+
     ;
 
     private final HttpStatus httpStatus;
