@@ -7,6 +7,7 @@ import com.rhkr8521.iccas_question.common.response.SuccessStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,9 +17,10 @@ public class MemberController {
 
     private final MemberService memberService;
 
-    @GetMapping("/api/first_check")
-    public ResponseEntity<?> checkFirstTimeUser(@RequestParam("userId") String userId) {
+    @GetMapping("/api/member_check/{userId}")
+    public ResponseEntity<?> checkFirstTimeUser(@PathVariable String userId, @RequestParam("theme") String theme) {
         MemberResponseDTO response = memberService.checkFirstTimeUser(userId);
+        memberService.checkCorrectResult(userId, theme);
 
         if (response.isResult()) {
             return ResponseEntity.ok(ApiResponse.builder()

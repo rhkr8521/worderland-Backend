@@ -52,4 +52,15 @@ public class GameSet extends BaseTimeEntity {
                 .thirdStageTotalCount(this.thirdStageTotalCount + 1)
                 .build();
     }
+
+    public GameSet resetStageRecords() {
+        return this.toBuilder()
+                .firstStageRecord(0)
+                .firstStageTotalCount(0)
+                .secondStageRecord(0)
+                .secondStageTotalCount(0)
+                .thirdStageRecord(0)
+                .thirdStageTotalCount(0)
+                .build();
+    }
 }
