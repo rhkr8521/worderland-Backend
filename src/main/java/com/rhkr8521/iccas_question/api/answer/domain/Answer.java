@@ -1,5 +1,6 @@
 package com.rhkr8521.iccas_question.api.answer.domain;
 
+import com.rhkr8521.iccas_question.api.member.domain.Member;
 import com.rhkr8521.iccas_question.api.question.domain.Question;
 import com.rhkr8521.iccas_question.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
@@ -20,7 +21,9 @@ public class Answer extends BaseTimeEntity {
     @JoinColumn(name = "questionId")
     private Question question;
 
-    private String userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "userId")
+    private Member userId;
 
     @Enumerated(EnumType.STRING)
     private Result result;

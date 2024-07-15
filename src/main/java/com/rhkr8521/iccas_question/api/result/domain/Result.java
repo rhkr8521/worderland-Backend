@@ -1,5 +1,6 @@
 package com.rhkr8521.iccas_question.api.result.domain;
 
+import com.rhkr8521.iccas_question.api.member.domain.Member;
 import com.rhkr8521.iccas_question.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -15,7 +16,10 @@ public class Result extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String userId;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "userId")
+    private Member userId;
+
     private String theme;
     private Long stage;
     private int correctAnswers;
