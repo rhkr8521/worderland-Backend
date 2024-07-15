@@ -20,6 +20,8 @@ public enum ErrorStatus {
      */
     NOT_FOUND_QUESTION(HttpStatus.NOT_FOUND, "해당 문제를 찾을 수 없습니다."),
     NOT_FOUND_THEME(HttpStatus.NOT_FOUND, "해당 테마를 찾을 수 없습니다."),
+    NOT_FOUND_USER(HttpStatus.NOT_FOUND, "해당 유저ID를 찾을 수 없습니다."),
+    NOT_FOUND_RESULT(HttpStatus.NOT_FOUND, "해당 유저의 게임 기록이 없습니다."),
 
     /**
      * 500 SERVER_ERROR
