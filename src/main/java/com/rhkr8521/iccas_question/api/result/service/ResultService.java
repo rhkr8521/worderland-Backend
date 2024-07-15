@@ -1,11 +1,14 @@
 package com.rhkr8521.iccas_question.api.result.service;
 
+import com.rhkr8521.iccas_question.api.member.domain.Member;
+import com.rhkr8521.iccas_question.api.member.repository.MemberRepository;
 import com.rhkr8521.iccas_question.api.result.domain.GameSet;
 import com.rhkr8521.iccas_question.api.result.domain.Result;
 import com.rhkr8521.iccas_question.api.result.dto.ResultResponseDTO;
 import com.rhkr8521.iccas_question.api.result.repository.GameSetRepository;
 import com.rhkr8521.iccas_question.api.result.repository.ResultRepository;
 import com.rhkr8521.iccas_question.common.exception.NotFoundException;
+import com.rhkr8521.iccas_question.common.response.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,15 +22,19 @@ public class ResultService {
 
     private final GameSetRepository gameSetRepository;
     private final ResultRepository resultRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional
     public void updateGameSet(String userId, String theme, Long stage, boolean isCorrect) {
-        GameSet currentGameSet = gameSetRepository.findByUserIdAndTheme(userId, theme).stream()
+        Member member = memberRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER.getMessage()));
+
+        GameSet currentGameSet = gameSetRepository.findByMemberAndTheme(member, theme).stream()
                 .filter(gs -> gs.getFirstStageTotalCount() < 5 || gs.getSecondStageTotalCount() < 5 || gs.getThirdStageTotalCount() < 1)
                 .findFirst()
                 .orElseGet(() -> {
                     GameSet newGameSet = GameSet.builder()
-                            .userId(userId)
+                            .member(member)
                             .theme(theme)
                             .firstStageRecord(0)
                             .firstStageTotalCount(0)
@@ -50,9 +57,9 @@ public class ResultService {
         gameSetRepository.save(currentGameSet);
 
         if (currentGameSet.getFirstStageTotalCount() == 5 && currentGameSet.getSecondStageTotalCount() == 5 && currentGameSet.getThirdStageTotalCount() == 1) {
-            updateResultsWithBestGameSet(userId, theme);
+            updateResultsWithBestGameSet(member, theme);
             GameSet newGameSet = GameSet.builder()
-                    .userId(userId)
+                    .member(member)
                     .theme(theme)
                     .firstStageRecord(0)
                     .firstStageTotalCount(0)
@@ -65,34 +72,33 @@ public class ResultService {
         }
     }
 
-    private void updateResultsWithBestGameSet(String userId, String theme) {
-        List<GameSet> gameSets = gameSetRepository.findByUserIdAndTheme(userId, theme);
+    private void updateResultsWithBestGameSet(Member member, String theme) {
+        List<GameSet> gameSets = gameSetRepository.findByMemberAndTheme(member, theme);
 
         if (gameSets.isEmpty()) {
-            throw new NotFoundException("해당 사용자는 게임 플레이 기록이 없습니다.");
+            throw new NotFoundException(ErrorStatus.NOT_FOUND_RESULT.getMessage());
         }
 
         GameSet bestGameSet = gameSets.stream()
                 .max(Comparator.comparingDouble(GameSet::getTotalAccuracy))
-                .orElseThrow(() -> new NotFoundException("해당 사용자는 게임 플레이 기록이 없습니다."));
+                .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_RESULT.getMessage()));
 
-        updateOrSaveResult(userId, theme, 1L, bestGameSet.getFirstStageRecord());
-        updateOrSaveResult(userId, theme, 2L, bestGameSet.getSecondStageRecord());
-        updateOrSaveResult(userId, theme, 3L, bestGameSet.getThirdStageRecord());
+        updateOrSaveResult(member, theme, 1L, bestGameSet.getFirstStageRecord());
+        updateOrSaveResult(member, theme, 2L, bestGameSet.getSecondStageRecord());
+        updateOrSaveResult(member, theme, 3L, bestGameSet.getThirdStageRecord());
     }
 
-    private void updateOrSaveResult(String userId, String theme, Long stage, int correctAnswers) {
-        Result result = resultRepository.findByUserIdAndThemeAndStage(userId, theme, stage)
+    private void updateOrSaveResult(Member member, String theme, Long stage, int correctAnswers) {
+        Result result = resultRepository.findByMemberAndThemeAndStage(member, theme, stage)
                 .orElse(Result.builder()
-                        .userId(userId)
+                        .member(member)
                         .theme(theme)
                         .stage(stage)
                         .correctAnswers(correctAnswers)
                         .build());
 
-        result = Result.builder()
-                .id(result.getId())
-                .userId(result.getUserId())
+        result = result.toBuilder()
+                .member(result.getMember())
                 .theme(result.getTheme())
                 .stage(result.getStage())
                 .correctAnswers(correctAnswers)
@@ -103,31 +109,34 @@ public class ResultService {
 
     @Transactional(readOnly = true)
     public List<ResultResponseDTO> getBestResults(String userId, String theme) {
-        List<GameSet> gameSets = gameSetRepository.findByUserIdAndTheme(userId, theme);
+        Member member = memberRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER.getMessage()));
+
+        List<GameSet> gameSets = gameSetRepository.findByMemberAndTheme(member, theme);
 
         if (gameSets.isEmpty()) {
-            throw new NotFoundException("해당 사용자는 게임 플레이 기록이 없습니다.");
+            throw new NotFoundException(ErrorStatus.NOT_FOUND_RESULT.getMessage());
         }
 
         GameSet bestGameSet = gameSets.stream()
                 .max(Comparator.comparingDouble(GameSet::getTotalAccuracy))
-                .orElseThrow(() -> new NotFoundException("해당 사용자는 게임 플레이 기록이 없습니다."));
+                .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_RESULT.getMessage()));
 
         return List.of(
                 ResultResponseDTO.builder()
-                        .userId(bestGameSet.getUserId())
+                        .userId(bestGameSet.getMember().getUserId())
                         .theme(bestGameSet.getTheme())
                         .stage(1L)
                         .correctAnswers(bestGameSet.getFirstStageRecord())
                         .build(),
                 ResultResponseDTO.builder()
-                        .userId(bestGameSet.getUserId())
+                        .userId(bestGameSet.getMember().getUserId())
                         .theme(bestGameSet.getTheme())
                         .stage(2L)
                         .correctAnswers(bestGameSet.getSecondStageRecord())
                         .build(),
                 ResultResponseDTO.builder()
-                        .userId(bestGameSet.getUserId())
+                        .userId(bestGameSet.getMember().getUserId())
                         .theme(bestGameSet.getTheme())
                         .stage(3L)
                         .correctAnswers(bestGameSet.getThirdStageRecord())

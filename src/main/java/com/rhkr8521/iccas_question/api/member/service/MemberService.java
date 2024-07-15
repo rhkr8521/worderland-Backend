@@ -5,6 +5,8 @@ import com.rhkr8521.iccas_question.api.member.repository.MemberRepository;
 import com.rhkr8521.iccas_question.api.member.dto.MemberResponseDTO;
 import com.rhkr8521.iccas_question.api.result.domain.GameSet;
 import com.rhkr8521.iccas_question.api.result.repository.GameSetRepository;
+import com.rhkr8521.iccas_question.common.exception.NotFoundException;
+import com.rhkr8521.iccas_question.common.response.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,24 +42,20 @@ public class MemberService {
 
     @Transactional
     public void checkCorrectResult(String userId) {
-        List<GameSet> currentGameSetCarousel = gameSetRepository.findByUserIdAndTheme(userId, "carousel");
-        List<GameSet> currentGameSetFerrisWheel = gameSetRepository.findByUserIdAndTheme(userId, "ferris_wheel");
-        List<GameSet> currentGameSetRollerCoaster = gameSetRepository.findByUserIdAndTheme(userId, "roller_coaster");
-        currentGameSetCarousel.forEach(gs -> {
-            int totalStagesCount = gs.getFirstStageTotalCount() + gs.getSecondStageTotalCount() + gs.getThirdStageTotalCount();
-            if (totalStagesCount < 11) {
-                GameSet updatedGameSet = gs.resetStageRecords();
-                gameSetRepository.save(updatedGameSet);
-            }
-        });
-        currentGameSetFerrisWheel.forEach(gs -> {
-            int totalStagesCount = gs.getFirstStageTotalCount() + gs.getSecondStageTotalCount() + gs.getThirdStageTotalCount();
-            if (totalStagesCount < 11) {
-                GameSet updatedGameSet = gs.resetStageRecords();
-                gameSetRepository.save(updatedGameSet);
-            }
-        });
-        currentGameSetRollerCoaster.forEach(gs -> {
+        Member member = memberRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER.getMessage()));
+
+        List<GameSet> currentGameSetCarousel = gameSetRepository.findByMemberAndTheme(member, "carousel");
+        List<GameSet> currentGameSetFerrisWheel = gameSetRepository.findByMemberAndTheme(member, "ferris_wheel");
+        List<GameSet> currentGameSetRollerCoaster = gameSetRepository.findByMemberAndTheme(member, "roller_coaster");
+
+        resetStageRecordsIfNecessary(currentGameSetCarousel);
+        resetStageRecordsIfNecessary(currentGameSetFerrisWheel);
+        resetStageRecordsIfNecessary(currentGameSetRollerCoaster);
+    }
+
+    private void resetStageRecordsIfNecessary(List<GameSet> gameSets) {
+        gameSets.forEach(gs -> {
             int totalStagesCount = gs.getFirstStageTotalCount() + gs.getSecondStageTotalCount() + gs.getThirdStageTotalCount();
             if (totalStagesCount < 11) {
                 GameSet updatedGameSet = gs.resetStageRecords();

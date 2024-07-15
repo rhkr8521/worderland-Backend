@@ -17,8 +17,8 @@ public class GameSet extends BaseTimeEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId")
-    private Member userId;
+    @JoinColumn(name = "member_id")
+    private Member member;
 
     private String theme;
     private int firstStageRecord;
@@ -27,6 +27,19 @@ public class GameSet extends BaseTimeEntity {
     private int secondStageTotalCount;
     private int thirdStageRecord;
     private int thirdStageTotalCount;
+
+    @Builder
+    public GameSet(Member member, String theme, int firstStageRecord, int firstStageTotalCount,
+                   int secondStageRecord, int secondStageTotalCount, int thirdStageRecord, int thirdStageTotalCount) {
+        this.member = member;
+        this.theme = theme;
+        this.firstStageRecord = firstStageRecord;
+        this.firstStageTotalCount = firstStageTotalCount;
+        this.secondStageRecord = secondStageRecord;
+        this.secondStageTotalCount = secondStageTotalCount;
+        this.thirdStageRecord = thirdStageRecord;
+        this.thirdStageTotalCount = thirdStageTotalCount;
+    }
 
     public int getTotalCorrectAnswers() {
         return firstStageRecord + secondStageRecord + thirdStageRecord;

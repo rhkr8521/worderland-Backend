@@ -1,10 +1,11 @@
-
 package com.rhkr8521.iccas_question.api.answer.service;
 
 import com.rhkr8521.iccas_question.api.answer.domain.Answer;
 import com.rhkr8521.iccas_question.api.answer.repository.AnswerRepository;
 import com.rhkr8521.iccas_question.api.question.domain.Question;
 import com.rhkr8521.iccas_question.api.question.repository.QuestionRepository;
+import com.rhkr8521.iccas_question.api.member.domain.Member;
+import com.rhkr8521.iccas_question.api.member.repository.MemberRepository;
 import com.rhkr8521.iccas_question.api.result.service.ResultService;
 import com.rhkr8521.iccas_question.common.exception.NotFoundException;
 import com.rhkr8521.iccas_question.common.response.ErrorStatus;
@@ -18,6 +19,7 @@ public class AnswerService {
 
     private final AnswerRepository answerRepository;
     private final QuestionRepository questionRepository;
+    private final MemberRepository memberRepository;
     private final ResultService resultService;
 
     @Transactional
@@ -25,13 +27,16 @@ public class AnswerService {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_QUESTION.getMessage()));
 
+        Member member = memberRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER.getMessage()));
+
         boolean isCorrect = question.getAnswer().equalsIgnoreCase(userAnswer);
 
         resultService.updateGameSet(userId, question.getTheme(), question.getStage(), isCorrect);
 
         Answer answer = Answer.builder()
                 .question(question)
-                .userId(userId)
+                .member(member)
                 .result(isCorrect ? Answer.Result.OK : Answer.Result.FAIL)
                 .build();
 
