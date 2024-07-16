@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -112,36 +113,19 @@ public class ResultService {
         Member member = memberRepository.findByUserId(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER.getMessage()));
 
-        List<GameSet> gameSets = gameSetRepository.findByMemberAndTheme(member, theme);
+        List<Result> results = resultRepository.findByMemberAndTheme(member, theme);
 
-        if (gameSets.isEmpty()) {
+        if (results.isEmpty()) {
             throw new NotFoundException(ErrorStatus.NOT_FOUND_RESULT.getMessage());
         }
 
-        GameSet bestGameSet = gameSets.stream()
-                .max(Comparator.comparingDouble(GameSet::getTotalAccuracy))
-                .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_RESULT.getMessage()));
-
-        return List.of(
-                ResultResponseDTO.builder()
-                        .userId(bestGameSet.getMember().getUserId())
-                        .theme(bestGameSet.getTheme())
-                        .stage(1L)
-                        .correctAnswers(bestGameSet.getFirstStageRecord())
-                        .build(),
-                ResultResponseDTO.builder()
-                        .userId(bestGameSet.getMember().getUserId())
-                        .theme(bestGameSet.getTheme())
-                        .stage(2L)
-                        .correctAnswers(bestGameSet.getSecondStageRecord())
-                        .build(),
-                ResultResponseDTO.builder()
-                        .userId(bestGameSet.getMember().getUserId())
-                        .theme(bestGameSet.getTheme())
-                        .stage(3L)
-                        .correctAnswers(bestGameSet.getThirdStageRecord())
-                        .build()
-        );
+        return results.stream()
+                .map(result -> ResultResponseDTO.builder()
+                        .userId(result.getMember().getUserId())
+                        .theme(result.getTheme())
+                        .stage(result.getStage())
+                        .correctAnswers(result.getCorrectAnswers())
+                        .build())
+                .collect(Collectors.toList());
     }
-
 }
