@@ -152,16 +152,16 @@ public class QuestionService {
 
     private String getRandomPrompt() {
         List<String> prompts = List.of(
-                "popcorn Illustrate.+popcorn",
-                "hotdog Illustrate.+hotdog",
-                "balloon Illustrate.+balloon",
-                "carousel Illustrate.+carousel",
-                "ticket Illustrate.+ticket",
-                "pizza Illustrate.+pizza",
-                "donut Illustrate.+donut",
-                "bumpercar Illustrate.+bumpercar",
-                "dog Illustrate.+dog",
-                "cat Illustrate.+cat"
+                "one popcorn Illustrate.+popcorn",
+                "one hotdog Illustrate.+hotdog",
+                "one balloon Illustrate.+balloon",
+                "one carousel Illustrate.+carousel",
+                "one ticket Illustrate.+ticket",
+                "one pizza Illustrate.+pizza",
+                "one donut Illustrate.+donut",
+                "one bumpercar Illustrate.+bumpercar",
+                "one dog Illustrate.+dog",
+                "one cat Illustrate.+cat"
         );
         return prompts.get(random.nextInt(prompts.size()));
     }
