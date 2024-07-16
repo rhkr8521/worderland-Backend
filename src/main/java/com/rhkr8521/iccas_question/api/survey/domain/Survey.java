@@ -17,8 +17,8 @@ public class Survey extends BaseTimeEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId")
-    private Member userId;
+    @JoinColumn(name = "memberId")
+    private Member member;
 
     private int scoreResult;
     private String result;
