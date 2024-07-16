@@ -33,7 +33,7 @@ public class SurveyService {
         }
 
         Survey survey = Survey.builder()
-                .userId(member)
+                .member(member)
                 .scoreResult(scoreResult)
                 .result(result)
                 .build();

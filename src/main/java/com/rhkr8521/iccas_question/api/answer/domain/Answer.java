@@ -22,7 +22,7 @@ public class Answer extends BaseTimeEntity {
     private Question question;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "memberId")
     private Member member;
 
     @Enumerated(EnumType.STRING)
