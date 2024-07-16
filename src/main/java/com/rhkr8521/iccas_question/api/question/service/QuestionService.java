@@ -2,7 +2,9 @@ package com.rhkr8521.iccas_question.api.question.service;
 
 import com.rhkr8521.iccas_question.api.question.domain.Question;
 import com.rhkr8521.iccas_question.api.question.dto.ChatGPTRequestDTO;
+import com.rhkr8521.iccas_question.api.question.dto.ChatGPTRequestImageDTO;
 import com.rhkr8521.iccas_question.api.question.dto.ChatGPTResponseDTO;
+import com.rhkr8521.iccas_question.api.question.dto.ChatGPTResponseImageDTO;
 import com.rhkr8521.iccas_question.api.question.dto.QuestionDTO;
 import com.rhkr8521.iccas_question.api.question.repository.QuestionRepository;
 import com.rhkr8521.iccas_question.common.exception.InternalServerError;
@@ -37,6 +39,15 @@ public class QuestionService {
     @Value("${openai.api.url}")
     private String apiURL;
 
+    @Value("${openai.api.image_url}")
+    private String imageURL;
+
+    @Value("${openai.api.image_size}")
+    private String imageSize;
+
+    @Value("${openai.api.image_count}")
+    private int imageCount;
+
     public List<QuestionDTO> getRandomQuestionsByThemeAndStage(String theme, Long stage) {
         List<Question> questions = questionRepository.findByThemeAndStage(theme, stage);
         if (questions.isEmpty()) {
@@ -59,7 +70,7 @@ public class QuestionService {
             ChatGPTResponseDTO.Choice choice = response.getChoices().get(0);
             String content = choice.getMessage().getContent();
 
-            Pattern pattern = Pattern.compile("\\[sentence: (.*?), changed_word: (.*?), original_word: (.*?)\\]");
+            Pattern pattern = Pattern.compile("\\[sentence: (.*?), changed_word: (.*?), original_word: (.*?)]");
             Matcher matcher = pattern.matcher(content);
 
             if (matcher.find()) {
@@ -85,6 +96,47 @@ public class QuestionService {
         }
     }
 
+    public List<QuestionDTO> getChatGPTImageQuestions(String theme) {
+        List<Question> questions = questionRepository.findByThemeAndStage(theme, 2L).stream()
+                .filter(question -> !question.getContent().startsWith("https"))
+                .collect(Collectors.toList());
+
+        if (questions.size() < 4) {
+            throw new NotFoundException(ErrorStatus.NOT_FOUND_QUESTION.getMessage());
+        }
+
+        Collections.shuffle(questions);
+        List<QuestionDTO> result = questions.stream()
+                .limit(4)
+                .map(question -> new QuestionDTO(question.getQuestionId(), question.getContent()))
+                .collect(Collectors.toList());
+
+        String fullPrompt = getRandomPrompt();
+        String prompt = extractPrompt(fullPrompt);
+        String answer = extractAnswerFromPrompt(fullPrompt);
+        ChatGPTRequestImageDTO request = new ChatGPTRequestImageDTO(prompt, imageCount, imageSize);
+        ChatGPTResponseImageDTO response = restTemplate.postForObject(imageURL, request, ChatGPTResponseImageDTO.class);
+
+        if (response != null && !response.getData().isEmpty()) {
+            String imageUrl = response.getData().get(0).getUrl();
+            String content = imageUrl;
+
+            Question question = Question.builder()
+                    .content(content)
+                    .answer(answer)
+                    .theme(theme)
+                    .stage(2L)
+                    .build();
+
+            question = questionRepository.save(question);
+            result.add(new QuestionDTO(question.getQuestionId(), question.getContent()));
+        } else {
+            throw new InternalServerError(ErrorStatus.CHATGPT_RESPONSE_FAIL.getMessage());
+        }
+
+        return result;
+    }
+
     private String getPromptByTheme(String theme) {
         switch (theme) {
             case "carousel":
@@ -96,5 +148,30 @@ public class QuestionService {
             default:
                 throw new NotFoundException(ErrorStatus.NOT_FOUND_THEME.getMessage());
         }
+    }
+
+    private String getRandomPrompt() {
+        List<String> prompts = List.of(
+                "popcorn Illustrate.+popcorn",
+                "hotdog Illustrate.+hotdog",
+                "balloon Illustrate.+balloon",
+                "carousel Illustrate.+carousel",
+                "ticket Illustrate.+ticket",
+                "pizza Illustrate.+pizza",
+                "donut Illustrate.+donut",
+                "bumpercar Illustrate.+bumpercar",
+                "dog Illustrate.+dog",
+                "cat Illustrate.+cat"
+        );
+        return prompts.get(random.nextInt(prompts.size()));
+    }
+
+    private String extractPrompt(String fullPrompt) {
+        return fullPrompt.split("\\+")[0];
+    }
+
+    private String extractAnswerFromPrompt(String fullPrompt) {
+        String[] parts = fullPrompt.split("\\+");
+        return parts.length > 1 ? parts[1] : "";
     }
 }
