@@ -62,6 +62,7 @@ jobs:
         run: |
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | sudo -S docker run --name iccas_backend --rm -d \
           -p 8080:8080 \
+          -v /home/rhkr8521/images:/app/images \
           ${{ secrets.DOCKERHUB_USERNAME }}/iccas_backend
 
       - name: delete old docker images
