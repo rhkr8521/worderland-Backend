@@ -15,6 +15,7 @@ public class Question extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long questionId;
 
+    @Column(length = 1000)
     private String content;
     private String answer;
     private String theme;

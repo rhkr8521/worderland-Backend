@@ -24,6 +24,9 @@ public class QuestionController {
         if (stage == 3L) {
             QuestionDTO questionDTO = questionService.getChatGPTQuestion(theme);
             return ApiResponse.success(SuccessStatus.SEND_QUESTION_SUCCESS, questionDTO);
+        } else if (stage == 2L) {
+            List<QuestionDTO> questions = questionService.getChatGPTImageQuestions(theme);
+            return ApiResponse.success(SuccessStatus.SEND_QUESTION_SUCCESS, questions);
         } else {
             List<QuestionDTO> questions = questionService.getRandomQuestionsByThemeAndStage(theme, stage);
             if (!questions.isEmpty()) {
