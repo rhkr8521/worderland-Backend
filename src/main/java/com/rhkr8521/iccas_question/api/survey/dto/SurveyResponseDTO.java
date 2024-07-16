@@ -8,4 +8,5 @@ import lombok.Getter;
 public class SurveyResponseDTO {
 
     private String result;
+    private String detailResult;
 }

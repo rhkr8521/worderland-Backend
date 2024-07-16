@@ -22,4 +22,7 @@ public class Survey extends BaseTimeEntity {
 
     private int scoreResult;
     private String result;
+
+    @Column(length = 1000)
+    private String detailResult;
 }
