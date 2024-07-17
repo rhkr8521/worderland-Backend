@@ -18,6 +18,7 @@ public enum SuccessStatus {
     SEND_RESULT(HttpStatus.OK, "결과 발송 성공"),
     EXIST_USER(HttpStatus.OK, "기존 사용자 입니다"),
     SEND_CHECK_CORRECT_RESULT(HttpStatus.OK, "게임 결과 점검 완료"),
+    SEND_USER_GAME_RESULT(HttpStatus.OK, "사용자 게임 보고서 발송 성공"),
 
     /**
      * 201

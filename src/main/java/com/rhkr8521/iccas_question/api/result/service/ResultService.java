@@ -5,6 +5,7 @@ import com.rhkr8521.iccas_question.api.member.repository.MemberRepository;
 import com.rhkr8521.iccas_question.api.result.domain.GameSet;
 import com.rhkr8521.iccas_question.api.result.domain.Result;
 import com.rhkr8521.iccas_question.api.result.dto.ResultResponseDTO;
+import com.rhkr8521.iccas_question.api.result.dto.ReturnRecordResponseDTO;
 import com.rhkr8521.iccas_question.api.result.repository.GameSetRepository;
 import com.rhkr8521.iccas_question.api.result.repository.ResultRepository;
 import com.rhkr8521.iccas_question.common.exception.NotFoundException;
@@ -13,8 +14,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -128,4 +132,65 @@ public class ResultService {
                         .build())
                 .collect(Collectors.toList());
     }
+
+    @Transactional(readOnly = true)
+    public List<ReturnRecordResponseDTO> getUserResults(String userId) {
+        Member member = memberRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorStatus.NOT_FOUND_USER.getMessage()));
+
+        List<GameSet> gameSets = gameSetRepository.findByMember(member);
+        if (gameSets.isEmpty()) {
+            throw new NotFoundException(ErrorStatus.NOT_FOUND_RESULT.getMessage());
+        }
+
+        Map<LocalDate, List<GameSet>> gameSetByDate = gameSets.stream()
+                .collect(Collectors.groupingBy(gameSet -> gameSet.getCreatedAt().toLocalDate()));
+
+        return gameSetByDate.entrySet().stream()
+                .map(entry -> {
+                    LocalDate date = entry.getKey();
+                    List<GameSet> gameSetsOnDate = entry.getValue();
+                    List<ReturnRecordResponseDTO.ThemeRecordDTO> themeResults = Arrays.asList("carousel", "ferris_wheel", "roller_coaster").stream()
+                            .map(theme -> {
+                                List<GameSet> themeGameSets = gameSetsOnDate.stream()
+                                        .filter(gameSet -> gameSet.getTheme().equals(theme))
+                                        .collect(Collectors.toList());
+
+                                double firstStageBestRecord = themeGameSets.stream().mapToInt(GameSet::getFirstStageRecord).max().orElse(0);
+                                double firstStageAverageRecord = themeGameSets.stream().mapToInt(GameSet::getFirstStageRecord).average().orElse(0.0);
+
+                                double secondStageBestRecord = themeGameSets.stream().mapToInt(GameSet::getSecondStageRecord).max().orElse(0);
+                                double secondStageAverageRecord = themeGameSets.stream().mapToInt(GameSet::getSecondStageRecord).average().orElse(0.0);
+
+                                double thirdStageBestRecord = themeGameSets.stream().mapToInt(GameSet::getThirdStageRecord).max().orElse(0);
+                                double thirdStageAverageRecord = themeGameSets.stream().mapToInt(GameSet::getThirdStageRecord).average().orElse(0.0);
+
+                                double totalBestRecord = firstStageBestRecord + secondStageBestRecord + thirdStageBestRecord;
+                                double totalAverageRecord = firstStageAverageRecord + secondStageAverageRecord + thirdStageAverageRecord;
+
+                                double totalPlayRecord = themeGameSets.stream().mapToInt(gs -> gs.getFirstStageTotalCount() + gs.getSecondStageTotalCount() + gs.getThirdStageTotalCount()).sum();
+
+                                return ReturnRecordResponseDTO.ThemeRecordDTO.builder()
+                                        .theme(theme)
+                                        .firstStageBestRecord(firstStageBestRecord)
+                                        .firstStageAverageRecord(firstStageAverageRecord)
+                                        .secondStageBestRecord(secondStageBestRecord)
+                                        .secondStageAverageRecord(secondStageAverageRecord)
+                                        .thirdStageBestRecord(thirdStageBestRecord)
+                                        .thirdStageAverageRecord(thirdStageAverageRecord)
+                                        .totalBestRecord(totalBestRecord)
+                                        .totalAverageRecord(totalAverageRecord)
+                                        .totalPlayRecord(totalPlayRecord)
+                                        .build();
+                            })
+                            .collect(Collectors.toList());
+
+                    return ReturnRecordResponseDTO.builder()
+                            .date(date.toString())
+                            .result(themeResults)
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
 }

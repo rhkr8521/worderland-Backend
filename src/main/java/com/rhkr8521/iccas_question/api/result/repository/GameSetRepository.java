@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface GameSetRepository extends JpaRepository<GameSet, Long> {
     List<GameSet> findByMemberAndTheme(Member member, String theme);
+    List<GameSet> findByMember(Member member);
 }
