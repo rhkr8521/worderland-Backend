@@ -1,6 +1,7 @@
 package com.rhkr8521.iccas_question.api.result.controller;
 
 import com.rhkr8521.iccas_question.api.result.dto.ResultResponseDTO;
+import com.rhkr8521.iccas_question.api.result.dto.ReturnRecordResponseDTO;
 import com.rhkr8521.iccas_question.api.result.service.ResultService;
 import com.rhkr8521.iccas_question.common.response.ApiResponse;
 import com.rhkr8521.iccas_question.common.response.SuccessStatus;
@@ -22,6 +23,17 @@ public class ResultController {
     @GetMapping("/api/result/{userId}")
     public ResponseEntity<?> getBestResultsByTheme(@PathVariable String userId, @RequestParam String theme) {
         List<ResultResponseDTO> bestResults = resultService.getBestResults(userId, theme);
+        return ResponseEntity.ok(ApiResponse.builder()
+                .status(SuccessStatus.SEND_RESULT.getStatusCode())
+                .success(true)
+                .message(SuccessStatus.SEND_RESULT.getMessage())
+                .data(bestResults)
+                .build());
+    }
+
+    @GetMapping("/api/result/return")
+    public ResponseEntity<?> getRecordsByUserID(@RequestParam String userId) {
+        List<ReturnRecordResponseDTO> bestResults = resultService.getBestResults(userId);
         return ResponseEntity.ok(ApiResponse.builder()
                 .status(SuccessStatus.SEND_RESULT.getStatusCode())
                 .success(true)
