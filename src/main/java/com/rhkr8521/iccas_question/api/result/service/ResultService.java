@@ -144,7 +144,7 @@ public class ResultService {
         }
 
         Map<LocalDate, List<GameSet>> gameSetByDate = gameSets.stream()
-                .collect(Collectors.groupingBy(gameSet -> gameSet.getCreatedAt().toLocalDate()));
+                .collect(Collectors.groupingBy(gameSet -> gameSet.getUpdatedAt().toLocalDate()));
 
         return gameSetByDate.entrySet().stream()
                 .map(entry -> {
