@@ -157,13 +157,19 @@ public class ResultService {
                                         .collect(Collectors.toList());
 
                                 double firstStageBestRecord = themeGameSets.stream().mapToInt(GameSet::getFirstStageRecord).max().orElse(0);
-                                double firstStageAverageRecord = themeGameSets.stream().mapToInt(GameSet::getFirstStageRecord).average().orElse(0.0);
+                                double firstStageAverageRecord = themeGameSets.stream()
+                                        .filter(gs -> gs.getFirstStageTotalCount() > 0)
+                                        .mapToInt(GameSet::getFirstStageRecord).average().orElse(0.0);
 
                                 double secondStageBestRecord = themeGameSets.stream().mapToInt(GameSet::getSecondStageRecord).max().orElse(0);
-                                double secondStageAverageRecord = themeGameSets.stream().mapToInt(GameSet::getSecondStageRecord).average().orElse(0.0);
+                                double secondStageAverageRecord = themeGameSets.stream()
+                                        .filter(gs -> gs.getSecondStageTotalCount() > 0)
+                                        .mapToInt(GameSet::getSecondStageRecord).average().orElse(0.0);
 
                                 double thirdStageBestRecord = themeGameSets.stream().mapToInt(GameSet::getThirdStageRecord).max().orElse(0);
-                                double thirdStageAverageRecord = themeGameSets.stream().mapToInt(GameSet::getThirdStageRecord).average().orElse(0.0);
+                                double thirdStageAverageRecord = themeGameSets.stream()
+                                        .filter(gs -> gs.getThirdStageTotalCount() > 0)
+                                        .mapToInt(GameSet::getThirdStageRecord).average().orElse(0.0);
 
                                 double totalBestRecord = firstStageBestRecord + secondStageBestRecord + thirdStageBestRecord;
                                 double totalAverageRecord = firstStageAverageRecord + secondStageAverageRecord + thirdStageAverageRecord;
