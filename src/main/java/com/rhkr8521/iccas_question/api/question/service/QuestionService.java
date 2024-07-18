@@ -152,7 +152,7 @@ public class QuestionService {
 
     private String getRandomPrompt() {
         List<String> prompts = List.of(
-                "one popcorn Illustrate.+popcorn",
+                "one popcorn with bucket Illustrate.+popcorn",
                 "one hotdog Illustrate.+hotdog",
                 "one balloon Illustrate.+balloon",
                 "one carousel Illustrate.+carousel",
@@ -160,8 +160,8 @@ public class QuestionService {
                 "one pizza Illustrate.+pizza",
                 "one donut Illustrate.+donut",
                 "one bumpercar Illustrate.+bumpercar",
-                "one dog Illustrate.+dog",
-                "one cat Illustrate.+cat"
+                "very cute one dog Illustrate.+dog",
+                "very cute one cat Illustrate.+cat"
         );
         return prompts.get(random.nextInt(prompts.size()));
     }
