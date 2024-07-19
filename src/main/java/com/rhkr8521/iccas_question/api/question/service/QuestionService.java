@@ -140,11 +140,11 @@ public class QuestionService {
     private String getPromptByTheme(String theme) {
         switch (theme) {
             case "carousel":
-                return "You are an expert in treating dyslexia. Write one infant level sentence for the Dyslexia Therapy Reading Practice using the theme of your experience at an amusement park carousel. You can write it wrong with one similar words on purpose. Don't change the word conversion too much. Please print it out in the form of [sentence: your_sentence, changed_word: your_changed_word, original_word: your_original_word]";
+                return "You are an expert in treating dyslexia. Write one infant level sentence for the Dyslexia Therapy Reading Practice using the theme of your experience at an amusement park carousel. You can write it wrong with one similar words on purpose. Just change a one word. Please print it out in the form of [sentence: your_sentence, changed_word: your_changed_word, original_word: your_original_word]";
             case "ferris_wheel":
-                return "You are an expert in treating dyslexia. Write one infant level sentence for the Dyslexia Therapy Reading Practice using the theme of your experience at an amusement park ferris wheel. You can write it wrong with one similar words on purpose. Don't change the word conversion too much. Please print it out in the form of [sentence: your_sentence, changed_word: your_changed_word, original_word: your_original_word]";
+                return "You are an expert in treating dyslexia. Write one infant level sentence for the Dyslexia Therapy Reading Practice using the theme of your experience at an amusement park ferris wheel. You can write it wrong with one similar words on purpose. Just change a one word. Please print it out in the form of [sentence: your_sentence, changed_word: your_changed_word, original_word: your_original_word]";
             case "roller_coaster":
-                return "You are an expert in treating dyslexia. Write one infant level sentence for the Dyslexia Therapy Reading Practice using the theme of your experience at an amusement park roller coaster. You can write it wrong with one similar words on purpose. Don't change the word conversion too much. Please print it out in the form of [sentence: your_sentence, changed_word: your_changed_word, original_word: your_original_word]";
+                return "You are an expert in treating dyslexia. Write one infant level sentence for the Dyslexia Therapy Reading Practice using the theme of your experience at an amusement park roller coaster. You can write it wrong with one similar words on purpose. Just change a one word. Please print it out in the form of [sentence: your_sentence, changed_word: your_changed_word, original_word: your_original_word]";
             default:
                 throw new NotFoundException(ErrorStatus.NOT_FOUND_THEME.getMessage());
         }
