@@ -155,7 +155,6 @@ public class QuestionService {
                 "one popcorn with bucket Illustrate.+popcorn",
                 "one hotdog Illustrate.+hotdog",
                 "one balloon Illustrate.+balloon",
-                "one carousel Illustrate.+carousel",
                 "one ticket Illustrate.+ticket",
                 "one pizza Illustrate.+pizza",
                 "one donut Illustrate.+donut",
