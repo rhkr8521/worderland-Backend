@@ -97,6 +97,22 @@ public class QuestionService {
     }
 
     public List<QuestionDTO> getChatGPTImageQuestions(String theme) {
+        if ("carousel".equals(theme)) {
+            List<Question> questions = questionRepository.findByThemeAndStage(theme, 2L).stream()
+                    .filter(question -> !question.getContent().startsWith("https"))
+                    .collect(Collectors.toList());
+
+            if (questions.size() < 5) {
+                throw new NotFoundException(ErrorStatus.NOT_FOUND_QUESTION.getMessage());
+            }
+
+            Collections.shuffle(questions);
+            return questions.stream()
+                    .limit(5)
+                    .map(question -> new QuestionDTO(question.getQuestionId(), question.getContent()))
+                    .collect(Collectors.toList());
+        }
+
         List<Question> questions = questionRepository.findByThemeAndStage(theme, 2L).stream()
                 .filter(question -> !question.getContent().startsWith("https"))
                 .collect(Collectors.toList());
